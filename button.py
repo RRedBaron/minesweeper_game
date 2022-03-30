@@ -11,5 +11,5 @@ class MyButton(tk.Button):
         self.amount_of_bombs = 0
         self.is_open = False
 
-    def __repr__(self):
-        return f"MyButton {self.x};{self.y} {self.id} {self.is_mine} {self.amount_of_bombs}"
+    def __str__(self):
+        return f"{self.amount_of_bombs if not self.is_mine else 'B'}"

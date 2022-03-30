@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.messagebox import showinfo
 from random import shuffle
 from button import MyButton
 
@@ -23,6 +24,8 @@ class MineSweeper:
     y = (window.winfo_screenheight() - window.winfo_reqheight()) / 2 - 100
     window.wm_geometry("+%d+%d" % (x, y))
 
+    FIRST_CLICK = True
+    GAME_OVER = False
     ROWS = 10
     COLUMNS = 10
     MINES = round(ROWS * COLUMNS * 0.15)
@@ -60,9 +63,21 @@ class MineSweeper:
                             queue.append(next_btn)
 
     def click(self, clicked_btn: MyButton):
+        if MineSweeper.FIRST_CLICK:
+            MineSweeper.FIRST_CLICK = False
+            self.place_mines(clicked_btn.id)
+            self.count_mines()
+            self.print_buttons()
+
         if clicked_btn.is_mine:
             clicked_btn.config(text='*', background='red', disabledforeground='black')
             clicked_btn.is_open = True
+            MineSweeper.GAME_OVER = True
+            showinfo('GAME OVER!', 'Игра окончена!')
+            for i in range(1, MineSweeper.ROWS+1):
+                for j in range(1, MineSweeper.COLUMNS+1):
+                    if self.buttons[i][j].is_mine:
+                        self.buttons[i][j].config(text='*', disabledforeground='black')
         elif clicked_btn.amount_of_bombs:
             color = colors[clicked_btn.amount_of_bombs]
             clicked_btn.config(text=clicked_btn.amount_of_bombs, disabledforeground=color)
@@ -72,35 +87,33 @@ class MineSweeper:
         clicked_btn.config(state='disabled', relief=tk.SUNKEN)
 
     def create_field(self):
-        for i in range(1, MineSweeper.ROWS + 1):
-            for j in range(1, MineSweeper.COLUMNS + 1):
-                btn = self.buttons[i][j]
-                btn.grid(row=i, column=j)
-
-    def start_game(self):
-
-        self.create_field()
-        self.place_mines()
-        self.count_mines()
-        self.print_buttons()
-        self.window.mainloop()
-
-    @staticmethod
-    def get_indexes():
-        indexes = list(range(1, MineSweeper.ROWS * MineSweeper.COLUMNS + 1))
-        shuffle(indexes)
-        return indexes[:MineSweeper.MINES]
-
-    def place_mines(self):
-        indexes = self.get_indexes()
         count = 1
         for i in range(1, MineSweeper.ROWS + 1):
             for j in range(1, MineSweeper.COLUMNS + 1):
                 btn = self.buttons[i][j]
                 btn.id = count
+                btn.grid(row=i, column=j)
+                count += 1
+
+    def start_game(self):
+
+        self.create_field()
+        MineSweeper.window.mainloop()
+
+    @staticmethod
+    def get_indexes(exclude_index: int):
+        indexes = list(range(1, MineSweeper.ROWS * MineSweeper.COLUMNS + 1))
+        indexes.remove(exclude_index)
+        shuffle(indexes)
+        return indexes[:MineSweeper.MINES]
+
+    def place_mines(self, excluded_index: int):
+        indexes = self.get_indexes(excluded_index)
+        for i in range(1, MineSweeper.ROWS + 1):
+            for j in range(1, MineSweeper.COLUMNS + 1):
+                btn = self.buttons[i][j]
                 if btn.id in indexes:
                     btn.is_mine = True
-                count += 1
 
     def count_mines(self):
         for i in range(1, MineSweeper.ROWS + 1):
@@ -114,5 +127,7 @@ class MineSweeper:
                 btn.amount_of_bombs = count
 
     def print_buttons(self):
-        for row in self.buttons:
-            print(row)
+        for i in range(1, MineSweeper.ROWS+1):
+            for j in range(1, MineSweeper.COLUMNS+1):
+                print(self.buttons[i][j], end='')
+            print()
