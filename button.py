@@ -9,6 +9,7 @@ class MyButton(tk.Button):
         self.id = index
         self.is_mine = False
         self.amount_of_bombs = 0
+        self.is_open = False
 
     def __repr__(self):
         return f"MyButton {self.x};{self.y} {self.id} {self.is_mine} {self.amount_of_bombs}"
