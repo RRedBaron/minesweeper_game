@@ -40,6 +40,13 @@ class MineSweeper:
                 temp.append(btn)
             self.buttons.append(temp)
 
+    def restart(self):
+        [i.destroy() for i in self.window.winfo_children()]
+        self.__init__()
+        self.create_field()
+        MineSweeper.FIRST_CLICK = True
+        MineSweeper.GAME_OVER = False
+
     def breadth_first_search(self, btn: MyButton):
         queue = [btn]
         while queue:
@@ -63,19 +70,20 @@ class MineSweeper:
                             queue.append(next_btn)
 
     def click(self, clicked_btn: MyButton):
+        if MineSweeper.GAME_OVER:
+            return
         if MineSweeper.FIRST_CLICK:
             MineSweeper.FIRST_CLICK = False
             self.place_mines(clicked_btn.id)
             self.count_mines()
             self.print_buttons()
-
         if clicked_btn.is_mine:
             clicked_btn.config(text='*', background='red', disabledforeground='black')
             clicked_btn.is_open = True
             MineSweeper.GAME_OVER = True
             showinfo('GAME OVER!', 'Игра окончена!')
-            for i in range(1, MineSweeper.ROWS+1):
-                for j in range(1, MineSweeper.COLUMNS+1):
+            for i in range(1, MineSweeper.ROWS + 1):
+                for j in range(1, MineSweeper.COLUMNS + 1):
                     if self.buttons[i][j].is_mine:
                         self.buttons[i][j].config(text='*', disabledforeground='black')
         elif clicked_btn.amount_of_bombs:
@@ -87,6 +95,15 @@ class MineSweeper:
         clicked_btn.config(state='disabled', relief=tk.SUNKEN)
 
     def create_field(self):
+        menubar = tk.Menu(self.window)
+        self.window.config(menu=menubar)
+        settings_menu = tk.Menu(menubar, tearoff=0)
+        settings_menu.add_command(label='Start!', command=self.restart)
+        settings_menu.add_command(label='Settings')
+        settings_menu.add_command(label='Exit', command=MineSweeper.window.destroy)
+
+        menubar.add_cascade(label='Game', menu=settings_menu)
+
         count = 1
         for i in range(1, MineSweeper.ROWS + 1):
             for j in range(1, MineSweeper.COLUMNS + 1):
@@ -94,6 +111,11 @@ class MineSweeper:
                 btn.id = count
                 btn.grid(row=i, column=j)
                 count += 1
+
+        for i in range(1, MineSweeper.ROWS + 1):
+            tk.Misc.grid_rowconfigure(self.window, i, weight=1)
+        for i in range(1, MineSweeper.COLUMNS + 1):
+            tk.Misc.grid_columnconfigure(self.window, i, weight=1)
 
     def start_game(self):
 
@@ -127,7 +149,7 @@ class MineSweeper:
                 btn.amount_of_bombs = count
 
     def print_buttons(self):
-        for i in range(1, MineSweeper.ROWS+1):
-            for j in range(1, MineSweeper.COLUMNS+1):
+        for i in range(1, MineSweeper.ROWS + 1):
+            for j in range(1, MineSweeper.COLUMNS + 1):
                 print(self.buttons[i][j], end='')
             print()
